@@ -47,6 +47,8 @@ const dict = reactive({
         return;
       }
 
+      functions.pages.loadingOn();
+
       const registerRequest = new store.variables.inputAndOutput.accountInputAndOutput.RegisterConfirmRequest();
       registerRequest.setEmail(dict.data.form.email);
       registerRequest.setRandomString(dict.data.form.verifyCode);
@@ -55,6 +57,7 @@ const dict = reactive({
         async (err, res) => {
           if (err) {
             console.log(err);
+            functions.pages.loadingOff()
           } else {
             console.log(res);
             console.log(res?.getError());
@@ -63,10 +66,14 @@ const dict = reactive({
               dict.tempData.showDialog = false;
               const jwt = res?.getResult()?.getJwt();
               console.log(jwt);
-              store.variables.localStorage.set("jwt", jwt);
-              functions.pages.switchPage(store.variables.routesMap.home);
+              store.variables.jwt = jwt ?? "";
+              setTimeout(() => {
+                functions.pages.switchPage(store.variables.routesMap.roomList);
+                functions.pages.loadingOff()
+              }, 3000);
             } else {
               functions.basic.showToast(String(error));
+              functions.pages.loadingOff()
             }
           }
         })
@@ -76,7 +83,7 @@ const dict = reactive({
 
 onMounted(async () => {
   await functions.pages.jumpToLoginPageIfItMust(async () => {
-    functions.pages.switchPage(store.variables.routesMap.home);
+    functions.pages.switchPage(store.variables.routesMap.roomList);
   })
 });
 </script>
@@ -116,6 +123,7 @@ onMounted(async () => {
 
 <style lang="scss">
 @import "../scss/base.scss";
+
 
 .bigBackground {
   background-color: #c6e5ff;
@@ -181,5 +189,11 @@ onMounted(async () => {
       rgba(0, 212, 255, 1) 0%,
       rgba(255, 0, 144, 1) 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#020024", endColorstr="#ff0090", GradientType=1);
+}
+</style>
+
+<style>
+div.van-cell__title.van-field__label {
+  background-color: white;
 }
 </style>

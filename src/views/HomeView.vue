@@ -1,118 +1,99 @@
-<template>
-  <div ref="parentRefrence">hi</div>
-  <van-button type="primary" @click="async () => {
-    if (dict.data.room?.canPlaybackAudio) {
-      await dict.data.room?.startAudio()
-      functions.basic.log(dict.data.room)
-    }
-  }">Play</van-button>
-</template>
-
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import store, { functions } from "../store";
-import * as livekit from 'livekit-client';
-import { RoomInfo } from "@/generated_grpc/room_control_service_pb";
-import { Room, RoomEvent, Track } from "livekit-client";
+
+import store from "../store";
+import { functions } from "../store";
 
 const dict = reactive({
-  data: {
-    roomList: [] as RoomInfo[] | undefined,
-    accessToken: "",
-    room: null as unknown as Room | undefined,
-  },
-  functions: {
-    updateRooms: () => {
-      const listRoomRequest = new store.variables.inputAndOutput.roomControlInputAndOutput.ListRoomsRequest();
-      store.variables.roomControlService.listRooms(listRoomRequest, store.variables.jwtMetaData, (err, res) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(res);
-          const roomList = res?.getRoomsList();
-          console.log(roomList)
-          dict.data.roomList = roomList
-        }
-      })
-    },
-    createARoom: () => {
-      const createRoomRequest = new store.variables.inputAndOutput.roomControlInputAndOutput.CreateRoomRequest();
-      store.variables.roomControlService.createRoom(createRoomRequest, store.variables.jwtMetaData, (err, res) => {
-        if (err) {
-          console.log(err);
-          functions.basic.showToast(err.message);
-        } else {
-          console.log(res);
-          const success = res?.getSuccess();
-          console.log(success)
-          functions.basic.showToast("Create a room successfully.");
-        }
-      })
-    },
-    joinARoom: (roomName: string, afterSuccess: () => Promise<void> = async () => { }) => {
-      const joinRoomRequest = new store.variables.inputAndOutput.roomControlInputAndOutput.AllowJoinRequest();
-      joinRoomRequest.setIdentity(store.variables.localStorage.get("email"));
-      joinRoomRequest.setRoomname(roomName);
-      store.variables.roomControlService.allowJoin(joinRoomRequest, store.variables.jwtMetaData, async (err, res) => {
-        if (err) {
-          console.log(err);
-          functions.basic.showToast(err.message);
-        } else {
-          console.log(res);
-          const accessToken = res?.getAccesstoken();
-          if (accessToken) {
-            dict.data.accessToken = accessToken
-            console.log(accessToken)
-            await afterSuccess();
-            functions.basic.showToast("Join a room successfully.");
-          }
-        }
-      })
-    },
-  }
+  hoverButton: false,
+  backgoundImageUrl: require("@/assets/sky-background.jpg"),
 })
+</script>
 
-const parentRefrence = ref(null as unknown as HTMLElement);
+<template>
+  <div class="HomePageContainer" :style="{
+    backgroundImage: dict.hoverButton ? `url(${dict.backgoundImageUrl})` : 'none',
+  }">
+    <div class="contentBlock">
+      <div class="WeLovePartyTitle ColorFulGradient">We Love Party</div>
+      <van-button @mouseover="dict.hoverButton = true" @mouseleave="dict.hoverButton = false" class="getInButton" plain
+        type="success" @click="() => {
+          functions.pages.switchPage(store.variables.routesMap.login);
+        }">Get In</van-button>
+    </div>
+  </div>
+</template>
 
-function handleTrackSubscribed(
-  track: livekit.RemoteTrack,
-  publication: livekit.RemoteTrackPublication,
-  participant: livekit.RemoteParticipant,
-) {
-  if (track.kind === Track.Kind.Video || track.kind === Track.Kind.Audio) {
-    // attach it to a new HTMLVideoElement or HTMLAudioElement
-    const element = track.attach();
-    parentRefrence?.value?.appendChild(element);
+<style lang="scss">
+.HomePageContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+  width: 100vw;
+
+  // background-image: url('@/assets/sky-background.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  > :first-child {
+    // margin-top: 200px;
+
+    height: 200px;
+    width: 100%;
+
+    background-color: rgba(65, 71, 77, 0.05);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      background-color: rgba(65, 71, 77, 0.1);
+    }
+  }
+
+  .WeLovePartyTitle {
+    font-size: xx-large;
+    font-weight: bold;
+  }
+
+  .getInButton {
+    margin-top: 40px;
+    // width: 200px;
+    width: 20%;
+
+    &:hover {
+      opacity: 0.8;
+      color: black;
+
+      // width: 25%;
+      font-size: medium;
+
+      background: rgb(2, 0, 36);
+      background: -moz-linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(192, 135, 229, 1) 0%, rgba(0, 255, 199, 1) 100%);
+      background: -webkit-linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(192, 135, 229, 1) 0%, rgba(0, 255, 199, 1) 100%);
+      background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(192, 135, 229, 1) 0%, rgba(0, 255, 199, 1) 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#020024", endColorstr="#00ffc7", GradientType=1);
+
+      // &>* :has(.HomePageContainer) {
+      //   background-image: url('@/assets/sky-background.jpg');
+      // }
+    }
   }
 }
 
-onMounted(async () => {
-  functions.pages.jumpToLoginPageIfItMust(async () => {
-    dict.functions.joinARoom("test", async () => {
-      const room = new livekit.Room({
-        adaptiveStream: true,
-        dynacast: true,
-      });
-      const result = await room.connect(
-        // "ws://localhost:7880",
-        "ws://106.52.12.33:7880",
-        dict.data.accessToken,
-        {
-          autoSubscribe: true,
-        }
-      );
-      console.log(result)
-      dict.data.room = room;
-
-      room.on(RoomEvent.TrackSubscribed, handleTrackSubscribed)
-
-      // await room.localParticipant.setMicrophoneEnabled(true);
-      // await room.startAudio();
-    })
-  })
-});
-
-</script>
-
-<style>
+.ColorFulGradient {
+  background: rgb(2, 0, 36);
+  background: -moz-linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(0, 212, 255, 1) 0%, rgba(255, 0, 161, 1) 100%);
+  background: -webkit-linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(0, 212, 255, 1) 0%, rgba(255, 0, 161, 1) 100%);
+  background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(0, 212, 255, 1) 0%, rgba(255, 0, 161, 1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#020024", endColorstr="#ff00a1", GradientType=1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 </style>

@@ -15,16 +15,22 @@ import { router } from './router'
 import { Dialog, Toast } from "vant"
 
 // const grpcHostUrl = 'http://106.52.12.33'
-const grpcHostUrl = 'http://127.0.0.1'
+const grpcHostUrl = 'http://192.168.51.189'
 const accountGrpcPort = "40056"
 const roomControlGrpcPort = "40057"
+
+const liveKitURL = 'ws://192.168.51.189:7880'
+// "ws://106.52.12.33:7880",
 
 export const variables = reactive({
     routesMap: {
         home: "/home",
         login: "/login",
+        roomList: "/roomList",
+        chatRoom: "/chatRoom",
         about: "/about",
     },
+    liveKitURL,
     accountService: (new accountService.AccountServiceClient(
         grpcHostUrl + ":" + accountGrpcPort,
     )) as accountService.AccountServiceClient,
@@ -36,11 +42,23 @@ export const variables = reactive({
         roomControlInputAndOutput: roomControlInputAndOutput,
     },
     localStorage: localStorage,
+    jwt: computed({
+        get: (): string | null => localStorage.get("jwt"),
+        set: (jwt: string | null) => {
+            localStorage.set("jwt", jwt)
+        }
+    }),
+    email: computed({
+        get: (): string | null => localStorage.get("email"),
+        set: (email: string | null) => {
+            localStorage.set("email", email)
+        }
+    }),
     jwtMetaData: computed(() => {
         return new webGrpc.grpc.Metadata({
             "jwt": localStorage.get("jwt"),
         });
-    })
+    }),
 });
 
 export const functions = reactive({
@@ -86,6 +104,7 @@ export const functions = reactive({
         openALink: (url: string) => {
             window.open(url)
         },
+        sleep: (t: number) => new Promise(s => setTimeout(s, t))
     },
     pages: {
         loadingOn: () => {
@@ -101,7 +120,7 @@ export const functions = reactive({
         jumpToLoginPageIfItMust: (nextThingToDoIfStayAtCurrentPage: () => Promise<void> = async () => { }) => {
             functions.pages.loadingOn()
 
-            const jwt = variables.localStorage.get("jwt")
+            const jwt = variables.jwt
             if (jwt) {
                 const jwtVerifyRequest = new variables.inputAndOutput.accountInputAndOutput.JWTIsOKRequest();
                 jwtVerifyRequest.setJwt(String(jwt));
@@ -116,7 +135,7 @@ export const functions = reactive({
                                 functions.pages.switchPage(variables.routesMap.login)
                             } else {
                                 const email = res.getEmail();
-                                variables.localStorage.set("email", email)
+                                variables.email = email
                                 await nextThingToDoIfStayAtCurrentPage()
                             }
                         }
