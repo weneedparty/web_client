@@ -1,0 +1,2 @@
+"use strict";(self["webpackChunkweloveparty_web"]=self["webpackChunkweloveparty_web"]||[]).push([[443],{434:function(e,n,r){r.r(n),r.d(n,{default:function(){return v}});var t=r(3396);const a={class:"fullScreen"},u=(0,t._)("div",null,"WeLoveParty - made by yingshaoxo",-1),c=[u];function l(e,n){return(0,t.wg)(),(0,t.iD)("div",a,c)}var o=r(89);const s={},i=(0,o.Z)(s,[["render",l]]);var v=i}}]);
+//# sourceMappingURL=about.4bbc396d.js.map
