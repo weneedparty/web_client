@@ -145,22 +145,6 @@ const dict = reactive({
 
 onBeforeMount(async () => {
   functions.pages.jumpToLoginPageIfItMust(async () => {
-
-    dict.functions.roomController.joinARoom("test", async () => {
-      const room = new livekit.Room({
-        adaptiveStream: true,
-        dynacast: true,
-      });
-
-      const result = await room.connect(
-        store.variables.liveKitURL,
-        dict.data.accessToken ?? "",
-        {
-          autoSubscribe: true,
-        }
-      );
-    })
-
   })
 })
 

@@ -14,13 +14,13 @@ import { router } from './router'
 
 import { Dialog, Toast } from "vant"
 
-// const grpcHostUrl = 'http://106.52.12.33'
-const grpcHostUrl = 'http://192.168.51.189'
+const grpcHostUrl = 'http://106.52.12.33'
+// const grpcHostUrl = 'http://192.168.51.189'
 const accountGrpcPort = "40056"
 const roomControlGrpcPort = "40057"
 
-const liveKitURL = 'ws://192.168.51.189:7880'
-// "ws://106.52.12.33:7880",
+// const liveKitURL = 'ws://192.168.51.189:7880'
+const liveKitURL = 'ws://106.52.12.33:7880'
 
 export const variables = reactive({
     routesMap: {
@@ -141,6 +141,9 @@ export const functions = reactive({
                         }
                         functions.pages.loadingOff()
                     })
+            } else {
+                functions.pages.switchPage(variables.routesMap.login)
+                functions.pages.loadingOff()
             }
         },
         switchPage: (page: string, query?: any) => {

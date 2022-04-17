@@ -208,12 +208,6 @@ onMounted(async () => {
     </div>
   </div>
 
-  <!-- <van-button @click="() => {
-    functions.basic.log([...dict.data.room?.participants.values()])
-  }">
-    test
-  </van-button> -->
-
   <div class="floatingButtonAtTheRightBottomCornor" @click="
     () => {
       if (dict.tempData.microphoneOn) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onBeforeMount, onMounted, reactive, ref } from "vue";
 
 import store from "../store";
 
@@ -58,6 +58,7 @@ const dict = reactive({
           if (err) {
             console.log(err);
             functions.pages.loadingOff()
+            functions.basic.showToast(String(err));
           } else {
             console.log(res);
             console.log(res?.getError());
@@ -68,9 +69,9 @@ const dict = reactive({
               console.log(jwt);
               store.variables.jwt = jwt ?? "";
               setTimeout(() => {
-                functions.pages.switchPage(store.variables.routesMap.roomList);
-                functions.pages.loadingOff()
-              }, 3000);
+                location.reload()
+              }, 1000);
+              functions.pages.loadingOff()
             } else {
               functions.basic.showToast(String(error));
               functions.pages.loadingOff()
@@ -81,10 +82,13 @@ const dict = reactive({
   }
 })
 
-onMounted(async () => {
+onBeforeMount(async () => {
   await functions.pages.jumpToLoginPageIfItMust(async () => {
     functions.pages.switchPage(store.variables.routesMap.roomList);
   })
+})
+
+onMounted(async () => {
 });
 </script>
 
